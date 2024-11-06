@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manim Animation</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Manim Animation Generator</h1>
+        <label for="antennaSlider">Number of Antennas: <span id="antennaCount">4</span></label>
+    <input type="range" id="antennaSlider" min="1" max="5" value="4" />
+    <button id="generateButton">Generate Video</button>
+    <p id="statusMessage"></p>
+    <video id="animationVideo" width="640" controls style="display:none;">
+        <source src="/get_video" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        // Trigger video generation
+        const antennaSlider = document.getElementById('antennaSlider');
+const antennaCount = document.getElementById('antennaCount');
+
+antennaSlider.addEventListener('input', () => {
+    antennaCount.textContent = antennaSlider.value;
+});
+
+        $("#generateButton").click(function() {
+        	var antennaSlider = $("#antennaSlider").val();
+        	
+            $("#statusMessage").text("Generating video...");
+            $("#animationVideo").hide();
+            $.post("/generate_video",{ antennaSlider: antennaSlider }, function(data) {
+                checkStatus();
+            });
+        });
+
+        // Polling function to check video generation status
+        function checkStatus() {
+            $.get("/check_status", function(data) {
+             if (data.status === "ready") {
+                    $("#statusMessage").text("Video generation complete!");
+                    $("#animationVideo").show();
+                    $("#animationVideo").attr("src", "/get_video");
+                }
+                else{
+                    $("#statusMessage").text("Video is generating...");
+                    setTimeout(checkStatus, 2000);  // Re-check every 2 seconds
+                } 
+            });
+        }
+    </script>
+</body>
+</html>
